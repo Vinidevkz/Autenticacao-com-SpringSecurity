@@ -32,15 +32,16 @@ public class User implements UserDetails {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
 	@Override
 	public @Nullable String getPassword() {
 		// TODO Auto-generated method stub
-		return null;
+		return password;
 	}
 	@Override
 	public String getUsername() {
 		// TODO Auto-generated method stub
-		return null;
+		return email;
 	}
 	
 	

@@ -1,6 +1,11 @@
 package com.project.security.controllers;
 
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,25 +24,33 @@ import jakarta.validation.Valid;
 @RequestMapping("/auth")
 public class AuthController {
 	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final AuthenticationManager authenticationManager;
 	
-	public AuthController(UserRepository userRepository) {
+	public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
 		this.userRepository = userRepository;
+		this.passwordEncoder = passwordEncoder;
+		this.authenticationManager = authenticationManager;
 	}
 	
 	@PostMapping("/login")
 	public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request){
+		
+		UsernamePasswordAuthenticationToken userAndPass = new  UsernamePasswordAuthenticationToken(request.email(), request.password());
+		org.springframework.security.core.Authentication authentication = authenticationManager.authenticate(userAndPass);
+		
 		return null;
 	}
 	
 	public ResponseEntity<RegisterUserResponse> register(@Valid @RequestBody RegisterUserRequest request){
 		User newUser = new User();
 		
-		newUser.setPassword(request.password());
+		newUser.setPassword(passwordEncoder.encode(request.password()));
 		newUser.setEmail(request.email());
 		newUser.setName(request.name());
 		
 		userRepository.save(newUser);
 		
-		return ResponseEntity.ok(new RegisterUserResponse(newUser.getName(), newUser.getEmail()))
+		return ResponseEntity.status(HttpStatus.CREATED).body(new RegisterUserResponse(newUser.getName(), newUser.getEmail()));
 	}
 }
